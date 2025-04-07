@@ -122,9 +122,9 @@ build:
           category: sourceC
         - file: src/stm32f1xx_it.c
           category: sourceC
-        - file: src/air780e.c
-          category: sourceC
         - file: src/relay.c
+          category: sourceC
+        - file: src/pdu.c
           category: sourceC
     - group: BSP
       files:

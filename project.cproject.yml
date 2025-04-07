@@ -69,8 +69,8 @@ project:
         - file: src/main.c
         - file: src/stm32f1xx_hal_msp.c
         - file: src/stm32f1xx_it.c
-        - file: src/air780e.c
         - file: src/relay.c
+        - file: src/pdu.c
     - group: BSP
       files:
         - file: src/bsp/bsp.c
