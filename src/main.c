@@ -15,6 +15,27 @@ enum State {
 
 #define RELAY 0
 
+#define LANG_DE
+// #define LANG_EN
+
+#ifdef LANG_DE
+#define STR_CMD_ON "ein"
+#define STR_CMD_OFF "aus"
+#define STR_CMD_STATUS "status"
+#define STR_MSG_CMD_UNKNOWN "Unbekannter Befehl '%s'. G~ltige Befehle sind: %s"
+#define STR_MSG_RELAY_ON "Das Ger{t ist eingeschaltet."
+#define STR_MSG_RELAY_OFF "Das Ger{t ist ausgeschaltet."
+#else
+#ifdef LANG_EN
+#define STR_CMD_ON "on"
+#define STR_CMD_OFF "off"
+#define STR_CMD_STATUS "status"
+#define STR_MSG_CMD_UNKNOWN "Unknown command '%s'. Valid commands are: %s"
+#define STR_MSG_RELAY_ON "The device is switched on."
+#define STR_MSG_RELAY_OFF "The device is switched off."
+#endif
+#endif
+
 struct CommandDesc {
     char *cmd;
     void (*func)(char *oa, char *msg);
@@ -26,9 +47,9 @@ void cmd_status(char *oa, char *msg);
 void cmd_unknown(char *oa, char *msg);
 
 struct CommandDesc commands[] = {
-    {"ein", cmd_relay_on},
-    {"aus", cmd_relay_off},
-    {"status", cmd_status},
+    {STR_CMD_ON, cmd_relay_on},
+    {STR_CMD_OFF, cmd_relay_off},
+    {STR_CMD_STATUS, cmd_status},
 };
 #define NUM_COMMANDS (sizeof(commands)/sizeof(struct CommandDesc))
 
@@ -75,7 +96,11 @@ void send_sms(char *da, char *msg) {
 
 void send_status(char *oa) {    
     char msg[100];
-    snprintf(msg, sizeof(msg), "Das Ger{t ist %s", relay_state(RELAY) ? "eingeschaltet." : "ausgeschaltet.");
+    if (relay_state(RELAY)) {
+        snprintf(msg, sizeof(msg), STR_MSG_RELAY_ON);
+    } else {
+        snprintf(msg, sizeof(msg), STR_MSG_RELAY_OFF);
+    }
     send_sms(oa, msg);
 }
 
@@ -138,7 +163,7 @@ void cmd_unknown(char *oa, char *msg) {
         strncat(commandlist, commands[i].cmd, sizeof(commandlist) - strlen(commandlist) - 1);
     }
 
-    snprintf(msg2, sizeof(msg2), "Unbekannter Befehl '%s'. G~ltige Befehle sind: %s", msg, commandlist);
+    snprintf(msg2, sizeof(msg2), STR_MSG_CMD_UNKNOWN, msg, commandlist);
     send_sms(oa, msg2);
 }
 
