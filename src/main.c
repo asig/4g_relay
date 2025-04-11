@@ -15,6 +15,23 @@ enum State {
 
 #define RELAY 0
 
+struct CommandDesc {
+    char *cmd;
+    void (*func)(char *oa, char *msg);
+};
+
+void cmd_relay_on(char *oa, char *msg);
+void cmd_relay_off(char *oa, char *msg);
+void cmd_status(char *oa, char *msg);
+void cmd_unknown(char *oa, char *msg);
+
+struct CommandDesc commands[] = {
+    {"ein", cmd_relay_on},
+    {"aus", cmd_relay_off},
+    {"status", cmd_status},
+};
+#define NUM_COMMANDS (sizeof(commands)/sizeof(struct CommandDesc))
+
 // Generic buffers
 enum { bufsize = 512 };
 static uint8_t buf[bufsize];
@@ -58,7 +75,7 @@ void send_sms(char *da, char *msg) {
 
 void send_status(char *oa) {    
     char msg[100];
-    snprintf(msg, sizeof(msg), "Das Ger{t ist %s", relay_state(RELAY) ? "eingeschaltet." : "ausgeschaltet."); // Too stupid to get the encoding right...
+    snprintf(msg, sizeof(msg), "Das Ger{t ist %s", relay_state(RELAY) ? "eingeschaltet." : "ausgeschaltet.");
     send_sms(oa, msg);
 }
 
@@ -66,23 +83,17 @@ void handle_message(char *oa, char *msg) {
     printf("Message from %s: %s\r\n", oa, msg);
     bsp_DelayMS(100);
 
-    if (strcasecmp(msg, "ein") == 0) {
-        relay_switch(RELAY, true);
-        send_status(oa);
-    } else if (strcasecmp(msg, "aus") == 0) {
-        relay_switch(RELAY, false);
-        send_status(oa);
-    } else if (strcasecmp(msg, "status") == 0) {
-        send_status(oa);
-    } else {
-        send_sms(oa, "Unbekannter Befehl. Befehle sind: ein, aus, status");
+    for(int i = 0; i < NUM_COMMANDS; i++) {
+        if (strcasecmp(msg, commands[i].cmd) == 0) {
+            commands[i].func(oa, msg);
+            return;
+        }
     }
+    cmd_unknown(oa, msg);
 }
 
 void process_line() {
     printf("line received: %s\r\n", line);
-    bsp_DelayMS(100);
-    printf("---\r\n");
     bsp_DelayMS(100);
 
     switch(state) {
@@ -100,6 +111,35 @@ void process_line() {
             break;    
         }
     }
+}
+
+void cmd_relay_on(char *oa, char *msg) {
+    relay_switch(RELAY, true);
+    send_status(oa);
+}
+
+void cmd_relay_off(char *oa, char *msg) {
+    relay_switch(RELAY, false);
+    send_status(oa);
+}
+
+void cmd_status(char *oa, char *msg) {
+    send_status(oa);
+}
+
+void cmd_unknown(char *oa, char *msg) {
+    char commandlist[256];
+    char msg2[256];
+    commandlist[0] = 0;
+    for (int i = 0; i < NUM_COMMANDS; i++) {
+        if (i > 0) {
+            strncat(commandlist, ", ", sizeof(commandlist) - strlen(commandlist) - 1);
+        }
+        strncat(commandlist, commands[i].cmd, sizeof(commandlist) - strlen(commandlist) - 1);
+    }
+
+    snprintf(msg2, sizeof(msg2), "Unbekannter Befehl '%s'. G~ltige Befehle sind: %s", msg, commandlist);
+    send_sms(oa, msg2);
 }
 
 int main(void)
