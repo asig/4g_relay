@@ -6,6 +6,7 @@
 #include "pdu.h"
 
 #define VERSION "0.1"
+#define YEAR "2025"
 
 enum State {
     WAITING_FOR_EVENT,
@@ -14,7 +15,7 @@ enum State {
 
 #define RELAY 0
 
-// Generic buffer
+// Generic buffers
 enum { bufsize = 512 };
 static uint8_t buf[bufsize];
 static uint8_t buf2[bufsize];
@@ -112,7 +113,7 @@ int main(void)
     bsp_DelayMS(100);
 
     printf("Welcome to 4g_relay %s, built on %s %s\r\n", VERSION, __DATE__, __TIME__);
-    printf("Copyright (c) 2025 Andreas Signer <asigner@gmail.com>\r\n");
+    printf("Copyright (c) " YEAR " Andreas Signer <asigner@gmail.com>\r\n");
 
     send("AT+SLEDS=?\r");  // Echo mode off
 
