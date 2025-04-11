@@ -8,7 +8,7 @@
 #define VERSION "0.1"
 
 enum State {
-    WAITING_FOR_CMT,
+    WAITING_FOR_EVENT,
     CMT_RECEIVED,
 } state;
 
@@ -57,7 +57,7 @@ void send_sms(char *da, char *msg) {
 
 void send_status(char *oa) {    
     char msg[100];
-    snprintf(msg, sizeof(msg), "Das Geraet ist %s", relay_state(RELAY) ? "eingeschaltet." : "ausgeschaltet."); // Too stupid to get the encoding right...
+    snprintf(msg, sizeof(msg), "Das Ger{t ist %s", relay_state(RELAY) ? "eingeschaltet." : "ausgeschaltet."); // Too stupid to get the encoding right...
     send_sms(oa, msg);
 }
 
@@ -85,7 +85,7 @@ void process_line() {
     bsp_DelayMS(100);
 
     switch(state) {
-        case WAITING_FOR_CMT:        
+        case WAITING_FOR_EVENT:        
             if (strncmp(line, "+CMT:", 5) == 0) {                
                 state = CMT_RECEIVED;
             }
@@ -95,7 +95,7 @@ void process_line() {
             printf("PDU received: %s\r\n", line);            
             pdu_receive_message(line, oa, sizeof(oa), buf, sizeof(buf));
             handle_message(oa, (char*)buf);
-            state = WAITING_FOR_CMT;
+            state = WAITING_FOR_EVENT;
             break;    
         }
     }
@@ -104,7 +104,7 @@ void process_line() {
 int main(void)
 {
 
-    state = WAITING_FOR_CMT;
+    state = WAITING_FOR_EVENT;
 
     bsp_Init();		/* Hardware initialization */
     relay_init();
@@ -114,6 +114,7 @@ int main(void)
     printf("Welcome to 4g_relay %s, built on %s %s\r\n", VERSION, __DATE__, __TIME__);
     printf("Copyright (c) 2025 Andreas Signer <asigner@gmail.com>\r\n");
 
+    send("AT+SLEDS=?\r");  // Echo mode off
 
     send("ATE0\r");  // Echo mode off
     send("AT*I\r");  // Dump info about the module
