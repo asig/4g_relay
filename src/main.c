@@ -4,6 +4,7 @@
 
 #include "relay.h"
 #include "pdu.h"
+#include "flash.h"
 
 #define VERSION "0.1"
 #define YEAR "2025"
@@ -54,7 +55,7 @@ struct CommandDesc commands[] = {
 #define NUM_COMMANDS (sizeof(commands)/sizeof(struct CommandDesc))
 
 // Generic buffers
-enum { bufsize = 512 };
+enum { bufsize = 1024 };
 static uint8_t buf[bufsize];
 static uint8_t buf2[bufsize];
 
@@ -63,6 +64,7 @@ enum { maxline = 511 };
 char line[maxline+1];
 
 void send(char *msg) {
+    printf("Sending: %s\r\n", msg);
     comSendBuf(COM2, (uint8_t*)msg, strlen(msg));
     bsp_DelayMS(100);
 }
@@ -77,6 +79,7 @@ void recv() {
         }
     }
     buf[pos] = 0;
+    printf("Received: %s\r\n", buf);
 }
 
 void send_sms(char *da, char *msg) {
@@ -175,16 +178,62 @@ int main(void)
     bsp_Init();		/* Hardware initialization */
     relay_init();
 
-    bsp_DelayMS(100);
+    bsp_DelayMS(1000); // Let the Air780E some time to come up
 
     printf("Welcome to 4g_relay %s, built on %s %s\r\n", VERSION, __DATE__, __TIME__);
     printf("Copyright (c) " YEAR " Andreas Signer <asigner@gmail.com>\r\n");
 
-    send("AT+SLEDS=?\r");  // Echo mode off
+    send("AT+RESET\r");  // Echo mode off
+    recv();
+
+
+    // send("AT+RESET\r");
+	// send("AT+CSTT\r");
+	// send("AT+CIICR\r");
+	// send("AT+CIFSR\r");
+
+    // send("AT+QCFG=\"diversity\",0\r"); 
+    // send("AT+QMBNCFG=\"AutoSel\",0\r"); 
+    // send("AT+QMBNCFG=\"select\",\"ROW_Generic_3GPP\"\r"); 
+    // send("AT+QCFG=\"ims\",1\r"); 
+    
+
+    // send("AT+CCED=0,1\r");
+
+
+    flash_read_page(31, buf);
+    for (int i = 0; i < 1024; i++) {
+        printf("%02x ", buf[i]);
+        if ((i % 16) == 15) {
+            printf("\r\n");
+        }
+    }
+
+    if (buf[0] == 0xFF) {
+        printf("Flash page is empty, writing...\r\n");
+        for (int i = 0; i < 1024; i++) {
+            buf[i] = i;
+        }
+        flash_write_page(31, buf);
+    } else {
+        printf("Flash page already written.\r\n");
+    }
 
     send("ATE0\r");  // Echo mode off
+    recv();
+
     send("AT*I\r");  // Dump info about the module
+    recv();
+
     send("AT+CMGF=0\r"); // Set PDU mode
+    recv();
+
+
+    send("AT+CREG?\r") ;
+    recv();
+
+    printf("Waiting for commands...\r\n");
+
     
     bsp_StartAutoTimer(0, 1000); /* Start a 1-second auto-reloading timer */
 
@@ -200,10 +249,9 @@ int main(void)
         }        
        
         uint8_t buf;
-        // if(	comGetChar(COM2,&buf)) {
-        //     comSendChar(COM1, buf);            
-        // }
-        // continue;
+        if(	comGetChar(COM1,&buf)) {
+            comSendChar(COM1, buf);            
+        }
 
         if(	comGetChar(COM2,&buf)) {
             switch(buf) {                

@@ -126,6 +126,8 @@ build:
           category: sourceC
         - file: src/pdu.c
           category: sourceC
+        - file: src/flash.c
+          category: sourceC
     - group: BSP
       files:
         - file: src/bsp/bsp.c
@@ -160,6 +162,10 @@ build:
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
           category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
+          category: sourceC
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
+          category: sourceC
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
           category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
           category: sourceC
