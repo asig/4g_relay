@@ -11,4 +11,5 @@ build-idx:
       messages:
         info:
           - project.cbuild-pack.yml - file is already up-to-date
+          - project+Flash.cbuild-run.yml - file generated successfully
           - project+Flash.cbuild.yml - file is already up-to-date
