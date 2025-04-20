@@ -3,9 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h"
-
-#define FLASH_BASE_ADDRESS 0x08000000
+#include "stm32f1xx_hal_flash_ex.h"
 
 static uint32_t buf[FLASH_PAGE_SIZE/sizeof(uint32_t)];
 

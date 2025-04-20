@@ -86,6 +86,7 @@ build:
       - --info summarysizes
   define:
     - USE_HAL_DRIVER
+    - HAL_CRC_MODULE_ENABLED
     - STM32F103x6
     - __MICROLIB
     - STM32F10X_LD
@@ -128,6 +129,8 @@ build:
           category: sourceC
         - file: src/flash.c
           category: sourceC
+        - file: src/settings.c
+          category: sourceC
     - group: BSP
       files:
         - file: src/bsp/bsp.c
@@ -147,11 +150,15 @@ build:
               - -masm=auto
     - group: HAL_Driver
       files:
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_crc.c
+          category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
           category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
           category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
+          category: sourceC
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
           category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
           category: sourceC
@@ -166,8 +173,6 @@ build:
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
           category: sourceC
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
-          category: sourceC
-        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
           category: sourceC
     - group: CMSIS
       files:

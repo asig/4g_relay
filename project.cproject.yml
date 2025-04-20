@@ -15,6 +15,7 @@ project:
       debug: "on"
       define:
         - USE_HAL_DRIVER
+        - HAL_CRC_MODULE_ENABLED
         - STM32F103x6
         - __MICROLIB
       define-asm:
@@ -72,6 +73,7 @@ project:
         - file: src/relay.c
         - file: src/pdu.c
         - file: src/flash.c
+        - file: src/settings.c
     - group: BSP
       files:
         - file: src/bsp/bsp.c
@@ -86,9 +88,11 @@ project:
                 - -masm=auto
     - group: HAL_Driver
       files:
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_crc.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
@@ -96,7 +100,6 @@ project:
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
-        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
     - group: CMSIS
       files:
         - file: src/system_stm32f1xx.c
