@@ -71,6 +71,7 @@ project:
         - file: src/stm32f1xx_it.c
         - file: src/relay.c
         - file: src/pdu.c
+        - file: src/flash.c
     - group: BSP
       files:
         - file: src/bsp/bsp.c
@@ -93,6 +94,8 @@ project:
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
+        - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
         - file: src/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
     - group: CMSIS
       files:
