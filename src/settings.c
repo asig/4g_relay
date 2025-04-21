@@ -1,6 +1,7 @@
 #include "settings.h"
 
 #include <string.h>
+#include <stdio.h>
 
 #include "stm32f1xx_hal_crc.h"
 
@@ -8,8 +9,8 @@
 
 #define SETTINGS_PAGE 31
 
-#define MAGIC1 ('s'<<24 | 'e'<<16 | 't'<<8 | 't')
-#define MAGIC2 ('i'<<24 | 'n'<<16 | 'g'<<8 | 's')
+#define MAGIC0 ('s'<<24 | 'e'<<16 | 't'<<8 | 't')
+#define MAGIC1 ('i'<<24 | 'n'<<16 | 'g'<<8 | 's')
 
 // Not static for testing...
 Settings settings;
@@ -29,10 +30,10 @@ static bool add_phone_number(SettingsPhoneEntry *entries, uint32_t max_entries, 
 
 static bool remove_phone_number(SettingsPhoneEntry *entries, uint32_t max_entries, const char *phone) {
     int i=0;
-    whike (i < max_entries && strcmp(entries[i], phone) != 0) i++;
+    while (i < max_entries && strcmp(entries[i], phone) != 0) i++;
     if (i == max_entries) return false;
     while (i+1 < max_entries) {
-        entries[i] = entries[i+1]
+        memcpy(entries[i], entries[i+1], sizeof(SettingsPhoneEntry));
         i++;
     }
     memset(&entries[max_entries-1][0], 0, sizeof(SettingsPhoneEntry));
@@ -47,21 +48,21 @@ void settings_init() {
     }
 
     bool need_init = false;
-    if (settings.magic1 != MAGIC1 || settings.magic2 != MAGIC2) {
-        printf("Settings: Bad magic: expected %08x %0x8, seen %08x %08x\r\n", MAGIC1, MAGIC2, settings.magic1, settings.magic2);
+    if (settings.magic0 != MAGIC0 || settings.magic1 != MAGIC1) {
+        printf("Settings: Bad magic: expected %08x %0x8, seen %08x %08x\r\n", MAGIC0, MAGIC1, settings.magic0, settings.magic1);
         need_init = true;
     }
 
     uint32_t crc32 = compute_crc32(&settings);
     if (crc32 != settings.crc32) {
-        printf("Settings: CRC32 mismatch. Expected %08x, seen %08x\r\n", crc32, settings.crc32)
+        printf("Settings: CRC32 mismatch. Expected %08x, seen %08x\r\n", crc32, settings.crc32);
         need_init = true;
     }
 
     if (need_init) {
         memset(&settings, 0, FLASH_PAGE_SIZE);
+        settings.magic0 = MAGIC0;
         settings.magic1 = MAGIC1;
-        settings.magic2 = MAGIC2;
         settings_write();
     }
 }
