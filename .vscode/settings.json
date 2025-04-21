@@ -1,5 +1,14 @@
 {
     "clangd.arguments": [
-        "--compile-commands-dir=c:\\Users\\Andreas\\projects\\4g_relay\\out\\project\\Flash"
+        "--compile-commands-dir=/mnt/shared_home/asigner/projects/4g_relay/out/project/Flash"
+    ],
+    "cmsis-csolution.actions": [
+        {
+            "path": "project.csolution.yml",
+            "target": "Flash",
+            "config": {
+                "debug": "(gdb) Launch"
+            }
+        }
     ]
 }
