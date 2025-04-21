@@ -10,9 +10,6 @@ enum {
     PHONE_ENTRY_SIZE = 24,
     MAX_ALLOWED_PHONE_ENTRIES = 10,
     MAX_ALERT_PHONE_ENTRIES = 5,
-
-    MAGIC1 = 's'<<24 | 'e'<<16 | 't'<<8 | 't',
-    MAGIC2 = 'i'<<24 | 'n'<<16 | 'g'<<8 | 's',
 };
 
 typedef char SettingsPhoneEntry[PHONE_ENTRY_SIZE];
