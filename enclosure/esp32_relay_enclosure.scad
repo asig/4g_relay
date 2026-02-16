@@ -1,6 +1,8 @@
 // ESP32 2-Relay Board Enclosure
 // Parametric design - adjust dimensions as needed
 
+$fn = 60;
+
 // ======================
 // PARAMETERS - Adjust these to fit your board
 // ======================
@@ -60,19 +62,42 @@ module bottom_case() {
         // Inner cavity
         translate([wall_thickness, wall_thickness, bottom_thickness])
             cube([inner_length, inner_width, inner_height + 1]);
+
+        // Cutout for antenna cable
+        translate([wall_thickness + clearance + board_length/2, outer_width+0.5*wall_thickness, bottom_thickness + standoff_height])
+            color("blue")
+            rotate([90,0,0])
+            cylinder(h = 2*wall_thickness, d = 2);
         
+        /*
         // Cutout for power screw terminals (left side, upper area)
         translate([-1, wall_thickness + clearance + board_width - 25, bottom_thickness + standoff_height])
-            cube([wall_thickness + 2, 18, terminal_height + 2]);
-        
+            cube([wall_thickness + 2, 18, terminal_height + 2]);       
+        */
+
+        /*
         // Cutout for relay screw terminals (bottom)
         translate([wall_thickness + clearance + 15, -1, bottom_thickness + standoff_height])
             cube([45, wall_thickness + 2, terminal_height + 2]);
+        */
         
+        // Alternative cut-out for power and relay cables
+        for (i = [0:1]) {            
+            translate([wall_thickness + clearance + board_length/2 - 5 + i*10, wall_thickness+1, bottom_thickness + standoff_height + 5])
+                color("red")
+                rotate([90,0,0])
+                cylinder(h = 2*wall_thickness, d = 3);
+        }
+        
+
+        
+        /*
         // USB port cutout (JSB1 - bottom left corner)
         translate([wall_thickness + clearance + 3, -1, bottom_thickness + standoff_height + 1])
             cube([10, wall_thickness + 2, 5]);
+        */
         
+        /*
         // Ventilation slots on right side
         for (i = [0:3]) {
             translate([outer_length - wall_thickness - 1, 
@@ -80,7 +105,9 @@ module bottom_case() {
                       bottom_thickness + 5])
                 cube([wall_thickness + 2, vent_slot_width, vent_slot_height]);
         }
+        */
         
+        /*
         // Ventilation slots on top side
         for (i = [0:2]) {
             translate([wall_thickness + 10 + i * (vent_slot_width + vent_spacing), 
@@ -88,6 +115,7 @@ module bottom_case() {
                       bottom_thickness + 5])
                 cube([vent_slot_width, wall_thickness + 2, vent_slot_height]);
         }
+        */
     }
     
     // PCB standoffs
@@ -101,11 +129,11 @@ module bottom_case() {
     for (pos = standoff_positions) {
         difference() {
             translate([pos[0], pos[1], bottom_thickness])
-                cylinder(h = standoff_height, d = standoff_dia, $fn=30);
+                cylinder(h = standoff_height, d = standoff_dia);
             
             // Screw hole through standoff
             translate([pos[0], pos[1], bottom_thickness - 0.5])
-                cylinder(h = standoff_height + 1, d = mounting_hole_dia, $fn=30);
+                cylinder(h = standoff_height + 1, d = mounting_hole_dia);
         }
     }
     
@@ -120,11 +148,11 @@ module bottom_case() {
     for (pos = lid_pillar_positions) {
         difference() {
             translate([pos[0], pos[1], bottom_thickness])
-                cylinder(h = inner_height - 1, d = 5, $fn=30);
+                cylinder(h = inner_height - 1, d = 5);
             
             // Thread hole for lid screw (M3)
             translate([pos[0], pos[1], inner_height - 8 + bottom_thickness])
-                cylinder(h = 9, d = 2.5, $fn=30);
+                cylinder(h = 9, d = 2.5);
         }
     }
 }
@@ -150,25 +178,29 @@ module top_lid() {
         ];
         
         for (pos = lid_screw_positions) {
-            translate([pos[0], pos[1], -1])
-                cylinder(h = top_thickness + 2, d = 3.4, $fn=30);
+            translate([pos[0], pos[1], -2.5])
+                cylinder(h = top_thickness + 4, d = 3.4);
             
             // Countersink for screw head
             translate([pos[0], pos[1], top_thickness - 1.5])
-                cylinder(h = 2, d1 = 3.4, d2 = 6.5, $fn=30);
+                cylinder(h = 2, d1 = 3.4, d2 = 6.5);
         }
         
+        /*
         // Ventilation holes in lid
         for (x = [0:3]) {
             for (y = [0:4]) {
                 translate([12 + x * 11, 12 + y * 11, -1])
-                    cylinder(h = top_thickness + 2, d = 3, $fn=20);
+                    cylinder(h = top_thickness + 2, d = 3);
             }
         }
+        */
         
+        /*
         // Label recess
         translate([outer_length/2 - 20, outer_width/2 - 5, top_thickness - 0.5])
             cube([40, 10, 1]);
+        */
     }
 }
 
