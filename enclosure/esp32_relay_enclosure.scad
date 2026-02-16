@@ -1,0 +1,192 @@
+// ESP32 2-Relay Board Enclosure
+// Parametric design - adjust dimensions as needed
+
+// ======================
+// PARAMETERS - Adjust these to fit your board
+// ======================
+
+// Board dimensions (from technical drawing)
+board_length = 62.0;   // mm
+board_width = 72.5;    // mm
+board_height = 1.6;    // mm (PCB thickness)
+
+// Component heights
+relay_height = 15.5;   // Height of relays above PCB
+esp32_height = 3;      // Height of ESP32 module
+terminal_height = 10;  // Height of screw terminals
+
+// Enclosure parameters
+wall_thickness = 2;
+bottom_thickness = 2;
+top_thickness = 2;
+clearance = 2;         // Space around board
+pcb_clearance = 3;     // Space below PCB
+
+// Mounting holes (based on board layout)
+mounting_hole_dia = 3.2;  // M3 screw
+standoff_height = pcb_clearance;
+standoff_dia = 6;
+
+// Corner positions for mounting holes (visible in technical drawing)
+hole_offset_x = 3.0;
+hole_offset_y = 3.0;
+
+// Ventilation
+vent_slot_width = 15;
+vent_slot_height = 1.5;
+vent_spacing = 3;
+
+// Calculated dimensions
+inner_length = board_length + 2 * clearance;
+inner_width = board_width + 2 * clearance;
+inner_height = standoff_height + board_height + relay_height + clearance;
+
+outer_length = inner_length + 2 * wall_thickness;
+outer_width = inner_width + 2 * wall_thickness;
+outer_height = inner_height + bottom_thickness;
+
+lid_height = top_thickness + 2;
+
+// ======================
+// MODULES
+// ======================
+
+// Bottom enclosure with walls
+module bottom_case() {
+    difference() {
+        // Main body
+        cube([outer_length, outer_width, outer_height]);
+        
+        // Inner cavity
+        translate([wall_thickness, wall_thickness, bottom_thickness])
+            cube([inner_length, inner_width, inner_height + 1]);
+        
+        // Cutout for power screw terminals (left side, upper area)
+        translate([-1, wall_thickness + clearance + board_width - 25, bottom_thickness + standoff_height])
+            cube([wall_thickness + 2, 18, terminal_height + 2]);
+        
+        // Cutout for relay screw terminals (bottom)
+        translate([wall_thickness + clearance + 15, -1, bottom_thickness + standoff_height])
+            cube([45, wall_thickness + 2, terminal_height + 2]);
+        
+        // USB port cutout (JSB1 - bottom left corner)
+        translate([wall_thickness + clearance + 3, -1, bottom_thickness + standoff_height + 1])
+            cube([10, wall_thickness + 2, 5]);
+        
+        // Ventilation slots on right side
+        for (i = [0:3]) {
+            translate([outer_length - wall_thickness - 1, 
+                      wall_thickness + 10 + i * (vent_slot_width + vent_spacing), 
+                      bottom_thickness + 5])
+                cube([wall_thickness + 2, vent_slot_width, vent_slot_height]);
+        }
+        
+        // Ventilation slots on top side
+        for (i = [0:2]) {
+            translate([wall_thickness + 10 + i * (vent_slot_width + vent_spacing), 
+                      outer_width - wall_thickness - 1, 
+                      bottom_thickness + 5])
+                cube([vent_slot_width, wall_thickness + 2, vent_slot_height]);
+        }
+    }
+    
+    // PCB standoffs
+    standoff_positions = [
+        [wall_thickness + clearance + hole_offset_x, wall_thickness + clearance + hole_offset_y],
+        [wall_thickness + clearance + board_length - hole_offset_x, wall_thickness + clearance + hole_offset_y],
+        [wall_thickness + clearance + hole_offset_x, wall_thickness + clearance + board_width - hole_offset_y],
+        [wall_thickness + clearance + board_length - hole_offset_x, wall_thickness + clearance + board_width - hole_offset_y]
+    ];
+    
+    for (pos = standoff_positions) {
+        difference() {
+            translate([pos[0], pos[1], bottom_thickness])
+                cylinder(h = standoff_height, d = standoff_dia, $fn=30);
+            
+            // Screw hole through standoff
+            translate([pos[0], pos[1], bottom_thickness - 0.5])
+                cylinder(h = standoff_height + 1, d = mounting_hole_dia, $fn=30);
+        }
+    }
+    
+    // Lid mounting pillars at corners
+    lid_pillar_positions = [
+        [wall_thickness + 3, wall_thickness + 3],
+        [outer_length - wall_thickness - 3, wall_thickness + 3],
+        [wall_thickness + 3, outer_width - wall_thickness - 3],
+        [outer_length - wall_thickness - 3, outer_width - wall_thickness - 3]
+    ];
+    
+    for (pos = lid_pillar_positions) {
+        difference() {
+            translate([pos[0], pos[1], bottom_thickness])
+                cylinder(h = inner_height - 1, d = 5, $fn=30);
+            
+            // Thread hole for lid screw (M3)
+            translate([pos[0], pos[1], inner_height - 8 + bottom_thickness])
+                cylinder(h = 9, d = 2.5, $fn=30);
+        }
+    }
+}
+
+// Top lid
+module top_lid() {
+    difference() {
+        union() {
+            // Main lid plate
+            cube([outer_length, outer_width, top_thickness]);
+            
+            // Lip that fits into case
+            translate([wall_thickness + 0.5, wall_thickness + 0.5, -lid_height + top_thickness])
+                cube([inner_length - 1, inner_width - 1, lid_height]);
+        }
+        
+        // Screw holes for lid attachment
+        lid_screw_positions = [
+            [wall_thickness + 3, wall_thickness + 3],
+            [outer_length - wall_thickness - 3, wall_thickness + 3],
+            [wall_thickness + 3, outer_width - wall_thickness - 3],
+            [outer_length - wall_thickness - 3, outer_width - wall_thickness - 3]
+        ];
+        
+        for (pos = lid_screw_positions) {
+            translate([pos[0], pos[1], -1])
+                cylinder(h = top_thickness + 2, d = 3.4, $fn=30);
+            
+            // Countersink for screw head
+            translate([pos[0], pos[1], top_thickness - 1.5])
+                cylinder(h = 2, d1 = 3.4, d2 = 6.5, $fn=30);
+        }
+        
+        // Ventilation holes in lid
+        for (x = [0:3]) {
+            for (y = [0:4]) {
+                translate([12 + x * 11, 12 + y * 11, -1])
+                    cylinder(h = top_thickness + 2, d = 3, $fn=20);
+            }
+        }
+        
+        // Label recess
+        translate([outer_length/2 - 20, outer_width/2 - 5, top_thickness - 0.5])
+            cube([40, 10, 1]);
+    }
+}
+
+// ======================
+// RENDERING
+// ======================
+
+// Render both parts separated for printing
+translate([0, 0, 0])
+    bottom_case();
+
+translate([outer_length + 10, 0, top_thickness])
+    rotate([180, 0, 0])
+        top_lid();
+
+// Optional: Show assembled view (comment out the above and uncomment below)
+/*
+bottom_case();
+translate([0, 0, outer_height - 0.1])
+    top_lid();
+*/
