@@ -38,6 +38,13 @@ vent_slot_width = 15;
 vent_slot_height = 1.5;
 vent_spacing = 3;
 
+// Mounting tabs for wall mounting
+tab_width = 15;        // Width of mounting tab
+tab_length = 12;       // Length extending from case
+tab_thickness = 3;     // Thickness of tab
+tab_hole_dia = 4.5;    // Hole diameter for M4 screw
+tab_hole_offset = 6;   // Distance of hole from edge
+
 // Calculated dimensions
 inner_length = board_length + 2 * clearance;
 inner_width = board_width + 2 * clearance;
@@ -52,6 +59,53 @@ lid_height = top_thickness + 2;
 // ======================
 // MODULES
 // ======================
+
+// Mounting tab for wall mounting
+module mounting_tab() {
+    corner_radius = 3;  // Radius for rounded corners
+    
+    difference() {
+        union() {
+            // Main tab body with rounded corners using hull()
+            translate([0, 0, 0])
+                hull() {
+                    // Corner cylinders for rounded edges
+                    translate([corner_radius, corner_radius, 0])
+                        cylinder(h = tab_thickness, r = corner_radius);
+                    translate([tab_width - corner_radius, corner_radius, 0])
+                        cylinder(h = tab_thickness, r = corner_radius);
+                    translate([corner_radius, tab_length - corner_radius, 0])
+                        cylinder(h = tab_thickness, r = corner_radius);
+                    translate([tab_width - corner_radius, tab_length - corner_radius, 0])
+                        cylinder(h = tab_thickness, r = corner_radius);
+                }
+            
+            // Reinforcement bracket connecting tab to case bottom
+            translate([0, 0, 0])
+                linear_extrude(height = tab_thickness)
+                polygon([
+                    [0, 0],
+                    [tab_width, 0],
+                    [tab_width, 3],
+                    [0, 3]
+                ]);
+            
+            /*
+            // Vertical reinforcement wall
+            translate([0, 0, 0])
+                cube([tab_width, 3, bottom_thickness + tab_thickness]);
+            */
+        }
+        
+        // Mounting hole
+        translate([tab_width/2, tab_hole_offset, -0.5])
+            cylinder(h = tab_thickness + 1, d = tab_hole_dia);
+        
+        // Countersink on top for screw head
+        translate([tab_width/2, tab_hole_offset, tab_thickness - 1])
+            cylinder(h = 2, d1 = tab_hole_dia, d2 = tab_hole_dia + 3);
+    }
+}
 
 // Bottom enclosure with walls
 module bottom_case() {
@@ -155,6 +209,17 @@ module bottom_case() {
                 cylinder(h = 9, d = 2.5);
         }
     }
+    
+    // Mounting tabs for wall mounting
+    // Top right corner
+    translate([outer_length-tab_width, outer_width - 0.5, 0])
+        rotate([0, 0, 0])
+            mounting_tab();
+    
+    // Bottom left corner  
+    translate([tab_width, 0.5, 0])
+        rotate([0, 0, 180])
+            mounting_tab();
 }
 
 // Top lid
