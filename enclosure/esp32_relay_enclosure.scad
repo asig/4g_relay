@@ -1,289 +1,158 @@
-// ESP32 2-Relay Board Enclosure
-// Parametric design - adjust dimensions as needed
-
+// ESP32 2-Relay Enclosure - Version 7.2 (Flipped Lid for Printing)
 $fn = 60;
+d = 0.02; 
 
 // ======================
-// PARAMETERS - Adjust these to fit your board
+// PARAMETERS
 // ======================
+board_length = 62.0;
+board_width = 72.5;
+board_height = 1.6;
 
-// Board dimensions (from technical drawing)
-board_length = 62.0;   // mm
-board_width = 72.5;    // mm
-board_height = 1.6;    // mm (PCB thickness)
+relay_height = 15.5;
+terminal_height = 10;
 
-// Component heights
-relay_height = 15.5;   // Height of relays above PCB
-esp32_height = 3;      // Height of ESP32 module
-terminal_height = 10;  // Height of screw terminals
+wall_thickness = 2.5;  
+bottom_thickness = 2.0;
+top_thickness = 2.0;
+clearance = 2.0;
+pcb_clearance = 3.0; 
+corner_radius = 5.0;
 
-// Enclosure parameters
-wall_thickness = 2;
-bottom_thickness = 2;
-top_thickness = 2;
-clearance = 2;         // Space around board
-pcb_clearance = 3;     // Space below PCB
+pillar_dia = 5.0; 
 
-// Mounting holes (based on board layout)
-mounting_hole_dia = 3.2;  // M3 screw
-standoff_height = pcb_clearance;
-standoff_dia = 6;
+// Calculated Dimensions
+inner_l = board_length + (2 * clearance);
+inner_w = board_width + (2 * clearance);
+inner_h = pcb_clearance + board_height + relay_height + clearance;
 
-// Corner positions for mounting holes (visible in technical drawing)
-hole_offset_x = 3.0;
-hole_offset_y = 3.0;
-
-// Ventilation
-vent_slot_width = 15;
-vent_slot_height = 1.5;
-vent_spacing = 3;
-
-// Mounting tabs for wall mounting
-tab_width = 15;        // Width of mounting tab
-tab_length = 12;       // Length extending from case
-tab_thickness = 3;     // Thickness of tab
-tab_hole_dia = 4.5;    // Hole diameter for M4 screw
-tab_hole_offset = 6;   // Distance of hole from edge
-
-// Calculated dimensions
-inner_length = board_length + 2 * clearance;
-inner_width = board_width + 2 * clearance;
-inner_height = standoff_height + board_height + relay_height + clearance;
-
-outer_length = inner_length + 2 * wall_thickness;
-outer_width = inner_width + 2 * wall_thickness;
-outer_height = inner_height + bottom_thickness;
-
-lid_height = top_thickness + 2;
+outer_l = inner_l + (2 * wall_thickness);
+outer_w = inner_w + (2 * wall_thickness);
+outer_height = inner_h + bottom_thickness;
 
 // ======================
-// MODULES
+// HELPER MODULES
 // ======================
 
-// Mounting tab for wall mounting
-module mounting_tab() {
-    corner_radius = 3;  // Radius for rounded corners
-    
-    difference() {
-        union() {
-            // Main tab body with rounded corners using hull()
-            translate([0, 0, 0])
-                hull() {
-                    // Corner cylinders for rounded edges
-                    translate([corner_radius, corner_radius, 0])
-                        cylinder(h = tab_thickness, r = corner_radius);
-                    translate([tab_width - corner_radius, corner_radius, 0])
-                        cylinder(h = tab_thickness, r = corner_radius);
-                    translate([corner_radius, tab_length - corner_radius, 0])
-                        cylinder(h = tab_thickness, r = corner_radius);
-                    translate([tab_width - corner_radius, tab_length - corner_radius, 0])
-                        cylinder(h = tab_thickness, r = corner_radius);
-                }
-            
-            // Reinforcement bracket connecting tab to case bottom
-            translate([0, 0, 0])
-                linear_extrude(height = tab_thickness)
-                polygon([
-                    [0, 0],
-                    [tab_width, 0],
-                    [tab_width, 3],
-                    [0, 3]
-                ]);
-            
-            /*
-            // Vertical reinforcement wall
-            translate([0, 0, 0])
-                cube([tab_width, 3, bottom_thickness + tab_thickness]);
-            */
-        }
-        
-        // Mounting hole
-        translate([tab_width/2, tab_hole_offset, -0.5])
-            cylinder(h = tab_thickness + 1, d = tab_hole_dia);
-        
-        // Countersink on top for screw head
-        translate([tab_width/2, tab_hole_offset, tab_thickness - 1])
-            cylinder(h = 2, d1 = tab_hole_dia, d2 = tab_hole_dia + 3);
+module rounded_box(x, y, z, r) {
+    hull() {
+        translate([r, r, 0]) cylinder(h=z, r=r);
+        translate([x-r, r, 0]) cylinder(h=z, r=r);
+        translate([r, y-r, 0]) cylinder(h=z, r=r);
+        translate([x-r, y-r, 0]) cylinder(h=z, r=r);
     }
 }
 
-// Bottom enclosure with walls
+module mounting_tab() {
+    tab_w = 15;
+    tab_l = 12;
+    difference() {
+        hull() {
+            cube([tab_w, d, 3]);
+            translate([tab_w/2, tab_l, 0]) cylinder(h=3, r=3);
+            translate([3, 3, 0]) cylinder(h=3, r=3);
+            translate([tab_w-3, 3, 0]) cylinder(h=3, r=3);
+        }
+        translate([tab_w/2, 6, -d]) {
+            cylinder(h=5, d=4.5);
+            translate([0,0,1.5]) cylinder(h=2.1, d1=4.5, d2=7.5);
+        }
+    }
+}
+
+// ======================
+// MAIN PARTS
+// ======================
+
 module bottom_case() {
     difference() {
-        // Main body
-        cube([outer_length, outer_width, outer_height]);
+        rounded_box(outer_l, outer_w, outer_height, corner_radius);
         
-        // Inner cavity
         translate([wall_thickness, wall_thickness, bottom_thickness])
-            cube([inner_length, inner_width, inner_height + 1]);
+            rounded_box(inner_l, inner_w, outer_height + d, corner_radius-wall_thickness);
 
-        // Cutout for antenna cable
-        translate([wall_thickness + clearance + board_length/2, outer_width+0.5*wall_thickness, bottom_thickness + standoff_height])
-            color("blue")
-            rotate([90,0,0])
-            cylinder(h = 2*wall_thickness, d = 2);
-        
-        /*
-        // Cutout for power screw terminals (left side, upper area)
-        translate([-1, wall_thickness + clearance + board_width - 25, bottom_thickness + standoff_height])
-            cube([wall_thickness + 2, 18, terminal_height + 2]);       
-        */
+        // ORIGINAL ANTENNA CUTOUT
+        translate([wall_thickness + clearance + board_length/2, outer_w + d, bottom_thickness + pcb_clearance])
+            rotate([90, 0, 0])
+                cylinder(h = wall_thickness + 2*d, d = 2);
 
-        /*
-        // Cutout for relay screw terminals (bottom)
-        translate([wall_thickness + clearance + 15, -1, bottom_thickness + standoff_height])
-            cube([45, wall_thickness + 2, terminal_height + 2]);
-        */
-        
-        // Alternative cut-out for power and relay cables
+        // ORIGINAL CABLE CUTOUTS
         for (i = [0:1]) {            
-            translate([wall_thickness + clearance + board_length/2 - 5 + i*10, wall_thickness+1, bottom_thickness + standoff_height + 5])
-                color("red")
-                rotate([90,0,0])
-                cylinder(h = 2*wall_thickness, d = 3);
+            translate([wall_thickness + clearance + board_length/2 - 5 + i*10, wall_thickness + d, bottom_thickness + pcb_clearance + 5])
+                rotate([90, 0, 0])
+                    cylinder(h = wall_thickness + 2*d, d = 3);
         }
-        
+    }
 
-        
-        /*
-        // USB port cutout (JSB1 - bottom left corner)
-        translate([wall_thickness + clearance + 3, -1, bottom_thickness + standoff_height + 1])
-            cube([10, wall_thickness + 2, 5]);
-        */
-        
-        /*
-        // Ventilation slots on right side
-        for (i = [0:3]) {
-            translate([outer_length - wall_thickness - 1, 
-                      wall_thickness + 10 + i * (vent_slot_width + vent_spacing), 
-                      bottom_thickness + 5])
-                cube([wall_thickness + 2, vent_slot_width, vent_slot_height]);
-        }
-        */
-        
-        /*
-        // Ventilation slots on top side
-        for (i = [0:2]) {
-            translate([wall_thickness + 10 + i * (vent_slot_width + vent_spacing), 
-                      outer_width - wall_thickness - 1, 
-                      bottom_thickness + 5])
-                cube([vent_slot_width, wall_thickness + 2, vent_slot_height]);
-        }
-        */
-    }
-    
-    // PCB standoffs
-    standoff_positions = [
-        [wall_thickness + clearance + hole_offset_x, wall_thickness + clearance + hole_offset_y],
-        [wall_thickness + clearance + board_length - hole_offset_x, wall_thickness + clearance + hole_offset_y],
-        [wall_thickness + clearance + hole_offset_x, wall_thickness + clearance + board_width - hole_offset_y],
-        [wall_thickness + clearance + board_length - hole_offset_x, wall_thickness + clearance + board_width - hole_offset_y]
+    // PCB Standoffs
+    ho_x = 3.0; 
+    ho_y = 3.0;
+    standoff_coords = [
+        [wall_thickness+clearance+ho_x, wall_thickness+clearance+ho_y],
+        [wall_thickness+clearance+board_length-ho_x, wall_thickness+clearance+ho_y],
+        [wall_thickness+clearance+ho_x, wall_thickness+clearance+board_width-ho_y],
+        [wall_thickness+clearance+board_length-ho_x, wall_thickness+clearance+board_width-ho_y]
     ];
-    
-    for (pos = standoff_positions) {
+
+    for (p = standoff_coords) {
+        translate([p[0], p[1], bottom_thickness])
         difference() {
-            translate([pos[0], pos[1], bottom_thickness])
-                cylinder(h = standoff_height, d = standoff_dia);
-            
-            // Screw hole through standoff
-            translate([pos[0], pos[1], bottom_thickness - 0.5])
-                cylinder(h = standoff_height + 1, d = mounting_hole_dia);
+            cylinder(h=pcb_clearance, d=6);
+            translate([0,0,-d]) cylinder(h=pcb_clearance+2*d, d=3.2);
         }
     }
-    
-    // Lid mounting pillars at corners
-    lid_pillar_positions = [
-        [wall_thickness + 3, wall_thickness + 3],
-        [outer_length - wall_thickness - 3, wall_thickness + 3],
-        [wall_thickness + 3, outer_width - wall_thickness - 3],
-        [outer_length - wall_thickness - 3, outer_width - wall_thickness - 3]
-    ];
-    
-    for (pos = lid_pillar_positions) {
+
+    // SLIM LID PILLARS
+    p_off = wall_thickness + (pillar_dia/2);
+    pillar_coords = [[p_off, p_off], [outer_l-p_off, p_off], [p_off, outer_w-p_off], [outer_l-p_off, outer_w-p_off]];
+
+    for (p = pillar_coords) {
+        translate([p[0], p[1], bottom_thickness])
         difference() {
-            translate([pos[0], pos[1], bottom_thickness])
-                cylinder(h = inner_height - 1, d = 5);
-            
-            // Thread hole for lid screw (M3)
-            translate([pos[0], pos[1], inner_height - 8 + bottom_thickness])
-                cylinder(h = 9, d = 2.5);
+            cylinder(h=inner_h - 1, d=pillar_dia); 
+            translate([0,0, inner_h - 9]) cylinder(h=10, d=2.5);
         }
     }
+
+    // 7. Adjusted Mounting Tabs
+    tab_offset = corner_radius + 2; 
+
+    translate([outer_l - tab_offset - 15, outer_w - 0.1, 0]) 
+        mounting_tab();
     
-    // Mounting tabs for wall mounting
-    // Top right corner
-    translate([outer_length-tab_width, outer_width - 0.5, 0])
-        rotate([0, 0, 0])
-            mounting_tab();
-    
-    // Bottom left corner  
-    translate([tab_width, 0.5, 0])
-        rotate([0, 0, 180])
+    translate([tab_offset + 15, 0.1, 0]) 
+        rotate([0, 0, 180]) 
             mounting_tab();
 }
 
-// Top lid
 module top_lid() {
+    p_off = wall_thickness + (pillar_dia/2);
+    pillar_coords = [[p_off, p_off], [outer_l-p_off, p_off], [p_off, outer_w-p_off], [outer_l-p_off, outer_w-p_off]];
+
     difference() {
         union() {
-            // Main lid plate
-            cube([outer_length, outer_width, top_thickness]);
-            
-            // Lip that fits into case
-            translate([wall_thickness + 0.5, wall_thickness + 0.5, -lid_height + top_thickness])
-                cube([inner_length - 1, inner_width - 1, lid_height]);
+            rounded_box(outer_l, outer_w, top_thickness, corner_radius);
+            translate([wall_thickness+0.5, wall_thickness+0.5, -2])
+                rounded_box(inner_l-1, inner_w-1, 2, corner_radius-wall_thickness);
         }
         
-        // Screw holes for lid attachment
-        lid_screw_positions = [
-            [wall_thickness + 3, wall_thickness + 3],
-            [outer_length - wall_thickness - 3, wall_thickness + 3],
-            [wall_thickness + 3, outer_width - wall_thickness - 3],
-            [outer_length - wall_thickness - 3, outer_width - wall_thickness - 3]
-        ];
-        
-        for (pos = lid_screw_positions) {
-            translate([pos[0], pos[1], -2.5])
-                cylinder(h = top_thickness + 4, d = 3.4);
-            
-            // Countersink for screw head
-            translate([pos[0], pos[1], top_thickness - 1.5])
-                cylinder(h = 2, d1 = 3.4, d2 = 6.5);
-        }
-        
-        /*
-        // Ventilation holes in lid
-        for (x = [0:3]) {
-            for (y = [0:4]) {
-                translate([12 + x * 11, 12 + y * 11, -1])
-                    cylinder(h = top_thickness + 2, d = 3);
+        for (p = pillar_coords) {
+            translate([p[0], p[1], -3]) {
+                cylinder(h=top_thickness+6, d=3.4);
+                translate([0,0, top_thickness + 1.2]) 
+                    cylinder(h=2, d1=3.4, d2=pillar_dia + 1);
             }
         }
-        */
-        
-        /*
-        // Label recess
-        translate([outer_length/2 - 20, outer_width/2 - 5, top_thickness - 0.5])
-            cube([40, 10, 1]);
-        */
     }
 }
 
 // ======================
-// RENDERING
+// RENDER (Lid Flipped for Printing)
 // ======================
-
-// Render both parts separated for printing
-translate([0, 0, 0])
-    bottom_case();
-
-translate([outer_length + 10, 0, top_thickness])
-    rotate([180, 0, 0])
-        top_lid();
-
-// Optional: Show assembled view (comment out the above and uncomment below)
-/*
 bottom_case();
-translate([0, 0, outer_height - 0.1])
-    top_lid();
-*/
+
+// Move lid to side, rotate 180 on X axis, and lift so it sits on bed
+translate([outer_l + 10, 0, top_thickness]) 
+    rotate([180, 0, 0]) 
+        translate([0, -outer_w, 0])
+            top_lid();
