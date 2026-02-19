@@ -1,4 +1,4 @@
-// ESP32 2-Relay Enclosure - Version 7.3 (Lid Pillars -5mm)
+// ESP32 2-Relay Enclosure - Version 7.4
 $fn = 100;
 d = 0.02; 
 
@@ -47,15 +47,18 @@ module mounting_tab() {
     tab_w = 15;
     tab_l = 12;
     h = 1.5;
+    overlap = 1.0; // how far the tab merges into the case wall
     difference() {
         hull() {
-            cube([tab_w, d, h]);
+            cube([tab_w, overlap + d, h]);
             translate([tab_w/2, tab_l, 0]) cylinder(h=h, r=3);
             translate([3, 3, 0]) cylinder(h=h, r=3);
             translate([tab_w-3, 3, 0]) cylinder(h=h, r=3);
         }
-        translate([tab_w/2, 6, -d]) {
-            translate([0,0,0.0]) cylinder(h=h+0.05, d1=4.5, d2=7.5);
+        // Countersink: wide at top, narrow at bottom
+        translate([tab_w/2, 6.5, -d]) {
+            cylinder(h=h + 2*d, d=4.5);                        // shaft hole through tab
+            translate([0, 0, 0]) cylinder(h=h+0.1, d1=4.5, d2=7.5); // countersink opens at top
         }
     }
 }
@@ -71,12 +74,12 @@ module bottom_case() {
         translate([wall_thickness, wall_thickness, bottom_thickness])
             rounded_box(inner_l, inner_w, outer_height + d, corner_radius-wall_thickness);
 
-        // ORIGINAL ANTENNA CUTOUT
+        // ANTENNA CUTOUT
         translate([wall_thickness + clearance + board_length/2, outer_w + d, bottom_thickness + pcb_clearance])
             rotate([90, 0, 0])
                 cylinder(h = wall_thickness + 2*d, d = 5);
 
-        // ORIGINAL CABLE CUTOUTS
+        // CABLE CUTOUTS
         for (i = [0:1]) {            
             translate([wall_thickness + clearance + board_length/2 - 5 + i*10, wall_thickness + d, bottom_thickness + pcb_clearance + 5])
                 rotate([90, 0, 0])
@@ -109,18 +112,18 @@ module bottom_case() {
     for (p = pillar_coords) {
         translate([p[0], p[1], bottom_thickness])
         difference() {
-            cylinder(h=inner_h - 6, d=pillar_dia);  // was inner_h - 1, reduced by 5mm
+            cylinder(h=inner_h - 6, d=pillar_dia);
             translate([0,0, inner_h - 14]) cylinder(h=10, d=2.5);
         }
     }
 
-    // 7. Adjusted Mounting Tabs
-    tab_offset = corner_radius + 2; 
+    // Mounting Tabs — 1mm overlap into wall to avoid non-manifold
+    tab_offset = corner_radius + 2;
 
-    translate([outer_l - tab_offset - 15, outer_w - 0.1, 0]) 
+    translate([outer_l - tab_offset - 15, outer_w - 1.0, 0]) 
         mounting_tab();
     
-    translate([tab_offset + 15, 0.1, 0]) 
+    translate([tab_offset + 15, 1.0, 0]) 
         rotate([0, 0, 180]) 
             mounting_tab();
 }
@@ -151,7 +154,6 @@ module top_lid() {
 // ======================
 bottom_case();
 
-// Move lid to side, rotate 180 on X axis, and lift so it sits on bed
 translate([outer_l + 10, 0, top_thickness]) 
     rotate([180, 0, 0]) 
         translate([0, -outer_w, 0])
