@@ -1,5 +1,5 @@
-// ESP32 2-Relay Enclosure - Version 7.2 (Flipped Lid for Printing)
-$fn = 60;
+// ESP32 2-Relay Enclosure - Version 7.3 (Lid Pillars -5mm)
+$fn = 100;
 d = 0.02; 
 
 // ======================
@@ -46,16 +46,16 @@ module rounded_box(x, y, z, r) {
 module mounting_tab() {
     tab_w = 15;
     tab_l = 12;
+    h = 1.5;
     difference() {
         hull() {
-            cube([tab_w, d, 3]);
-            translate([tab_w/2, tab_l, 0]) cylinder(h=3, r=3);
-            translate([3, 3, 0]) cylinder(h=3, r=3);
-            translate([tab_w-3, 3, 0]) cylinder(h=3, r=3);
+            cube([tab_w, d, h]);
+            translate([tab_w/2, tab_l, 0]) cylinder(h=h, r=3);
+            translate([3, 3, 0]) cylinder(h=h, r=3);
+            translate([tab_w-3, 3, 0]) cylinder(h=h, r=3);
         }
         translate([tab_w/2, 6, -d]) {
-            cylinder(h=5, d=4.5);
-            translate([0,0,1.5]) cylinder(h=2.1, d1=4.5, d2=7.5);
+            translate([0,0,0.0]) cylinder(h=h+0.05, d1=4.5, d2=7.5);
         }
     }
 }
@@ -74,13 +74,13 @@ module bottom_case() {
         // ORIGINAL ANTENNA CUTOUT
         translate([wall_thickness + clearance + board_length/2, outer_w + d, bottom_thickness + pcb_clearance])
             rotate([90, 0, 0])
-                cylinder(h = wall_thickness + 2*d, d = 2);
+                cylinder(h = wall_thickness + 2*d, d = 5);
 
         // ORIGINAL CABLE CUTOUTS
         for (i = [0:1]) {            
             translate([wall_thickness + clearance + board_length/2 - 5 + i*10, wall_thickness + d, bottom_thickness + pcb_clearance + 5])
                 rotate([90, 0, 0])
-                    cylinder(h = wall_thickness + 2*d, d = 3);
+                    cylinder(h = wall_thickness + 2*d, d = 8);
         }
     }
 
@@ -109,8 +109,8 @@ module bottom_case() {
     for (p = pillar_coords) {
         translate([p[0], p[1], bottom_thickness])
         difference() {
-            cylinder(h=inner_h - 1, d=pillar_dia); 
-            translate([0,0, inner_h - 9]) cylinder(h=10, d=2.5);
+            cylinder(h=inner_h - 6, d=pillar_dia);  // was inner_h - 1, reduced by 5mm
+            translate([0,0, inner_h - 14]) cylinder(h=10, d=2.5);
         }
     }
 
