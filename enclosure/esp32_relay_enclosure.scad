@@ -46,7 +46,7 @@ module rounded_box(x, y, z, r) {
 module mounting_tab() {
     tab_w = 15;
     tab_l = 12;
-    h = 1.5;
+    h = 2;
     overlap = 1.0; // how far the tab merges into the case wall
     difference() {
         hull() {
@@ -58,7 +58,7 @@ module mounting_tab() {
         // Countersink: wide at top, narrow at bottom
         translate([tab_w/2, 6.5, -d]) {
             cylinder(h=h + 2*d, d=4.5);                        // shaft hole through tab
-            translate([0, 0, 0]) cylinder(h=h+0.1, d1=4.5, d2=7.5); // countersink opens at top
+            translate([0, 0, 0.5]) cylinder(h=1.5+0.1, d1=4.5, d2=7.5); // countersink opens at top
         }
     }
 }
@@ -109,6 +109,7 @@ module bottom_case() {
     p_off = wall_thickness + (pillar_dia/2);
     pillar_coords = [[p_off, p_off], [outer_l-p_off, p_off], [p_off, outer_w-p_off], [outer_l-p_off, outer_w-p_off]];
 
+
     for (p = pillar_coords) {
         translate([p[0], p[1], bottom_thickness])
         difference() {
@@ -117,6 +118,7 @@ module bottom_case() {
         }
     }
 
+    
     // Mounting Tabs — 1mm overlap into wall to avoid non-manifold
     tab_offset = corner_radius + 2;
 
